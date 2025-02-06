@@ -1,15 +1,16 @@
-from flask import Flask, redirect, make_response
+from flask import Flask, redirect, make_response, render_template
 import dbmanager as db
 
 app = Flask(__name__)
 
 @app.route('/')
 def landing_page():
-    return "Hello!"
+    links = db.fetch_urls("silly")
+    return render_template("dashboard.html", links=links)
 
 @app.route("/favicon.ico")
 def favicon():
-    return None
+    return "no"
 @app.route("/<route>")
 def reRoute(route):
     newRoute = db.fetch_long_url(route)

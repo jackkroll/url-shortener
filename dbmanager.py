@@ -146,9 +146,16 @@ def fetch_long_url(shortURL:str) -> str | None:
         return results[0]
     else:
         return None
+def fetch_urls(uid: str) -> list[str]:
+    fetch_urls = f"""
+    SELECT *
+    FROM urls
+    WHERE creator = "{uid}"
+    """
+    cursor.execute(fetch_urls)
+    results = cursor.fetchall()
+    return results
 
 def create_tables():
     create_url_table()
     create_user_table()
-
-update_url("silly", longURL="https://google.com")
