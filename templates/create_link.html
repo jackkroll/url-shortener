@@ -1,0 +1,25 @@
+<div class="modal fade" id="create-link" tabindex="-1" aria-labelledby="modal-title-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="modal-title-1">Create Link</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST">
+        <div class="modal-body" style="gap: 10px">
+          <label for="long-link" class="form-label">Long URL</label>
+          <input id="long-link" name="long-link" type="text" class="form-control" placeholder="Long URL here" aria-label="Long URL here">
+          <label for="short-link" class="form-label">Short URL</label>
+          <div id = "short-link" class="input-group mb-3">
+            <span class="input-group-text" id="add-on-1">link.jackk.dev/</span>
+            <input type="text" name="short-link" class="form-control" placeholder="your-link-here" aria-label="your-link-here" aria-describedby="add-on-1">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" name="isActive" value="false" class="btn btn-warning">Save Draft</button>
+          <button type="submit" name="isActive" value="true" class="btn btn-success">Create + Publish</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

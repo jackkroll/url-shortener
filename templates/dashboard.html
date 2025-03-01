@@ -9,7 +9,32 @@
 </head>
 <body>
 <div class="container-sm" >
+    <script>
+        function deleteLink(url) {
+            fetch(`/`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" , "short-link": `${url}` }
+            })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    }
+                });
+        }
+    </script>
     <div class="row mb-2" style="width:100%">
+        {% include 'create_link.html' %}
+        {% if links|length == 0 %}
+            <div class="card col-md" style="width:100%;margin:15px; max-width:600px; min-width:350px;">
+                <div class="card-body">
+                <h5 class="card-title">Welcome!</h5>
+                <p class="card-text">
+                  It appears you haven't created any links yet, click the button below to get started
+                </p>
+                <a href="#create-link" role="button" data-bs-toggle="modal" class="btn btn-primary">Create</a>
+              </div>
+            </div>
+        {% endif %}
         {% for link in links %}
         <div class="card col-md" style="width:100%;margin:15px; max-width:600px; min-width:350px;">
           <div class="card-body d-flex align-items-center">
@@ -19,18 +44,25 @@
                 <div class="hstack gap-3">
                     <p>{{ link[4] }} visitors</p>
                     <p>{{ link[3] }}</p>
+                    {% if link[5] == 1 %}
+                    <p class="text-success"><strong>Published</strong></p>
+                    {% else %}
+                    <p class="text-warning"><strong>Draft</strong></p>
+                    {% endif %}
+
                 </div>
             </div>
             <div class="vstack gap-2">
-            <a href="#" onclick="copyText()" class="btn btn-primary">Copy Link</a>
+            <a onclick="copyText()" class="btn btn-primary">Copy Link</a>
             <script>
                 function copyText() {
                     navigator.clipboard.writeText
                         ("link.jackk.dev/{{ link[0] }}");
                 }
             </script>
-            <a href="#" class="btn btn-warning">Edit Link</a>
-            <a href="#" class="btn btn-danger">Delete Link</a>
+            <a data-bs-target="#edit-link-{{ link[0] }}" data-bs-toggle="modal" class="btn btn-warning">Edit Link</a>
+            {% include 'edit_link.html' %}
+            <button onclick="deleteLink('{{link[0]}}')" class="btn btn-danger">Delete Link</button>
             </div>
           </div>
         </div>

@@ -29,7 +29,8 @@ def create_user_table() -> bool:
         username VARCHAR(16),
         hash TEXT,
         joinDate DATE,
-        numURL SMALLINT
+        numURL SMALLINT,
+        isActive INTEGER
         );
         """
         cursor.execute(create_table)
@@ -48,7 +49,8 @@ def create_url_table() -> bool:
         longURL TEXT,
         creator TEXT,
         creationDate DATE,
-        visitors INTEGER
+        visitors INTEGER,
+        isActive INTEGER
         );
         """
         cursor.execute(create_table)
@@ -73,11 +75,11 @@ def create_new_user(uid:str, username: str, hash:str) -> bool:
     except sqlite3.IntegrityError:
         return False
 
-def create_new_url(uid:str, shortURL:str, longURL:str) -> bool:
+def create_new_url(uid:str, shortURL:str, longURL:str, isActive:bool) -> bool:
     excluded = ["","urls","account","login"]
     #ENSURE SHORTURL HAS NO "."
     new_url = f"""
-        INSERT INTO urls VALUES ("{shortURL}","{longURL}","{uid}","{date.today()}",0);
+        INSERT INTO urls VALUES ("{shortURL}","{longURL}","{uid}","{date.today()}",0,{isActive});
         """
     try:
         if shortURL not in excluded:
@@ -89,7 +91,7 @@ def create_new_url(uid:str, shortURL:str, longURL:str) -> bool:
     except sqlite3.IntegrityError:
         return False
 
-def update_user(uid:str, username:str = None, hash:str = None, numURL:int = None):
+def update_user(uid:str, username:str = None, hash:str = None, numURL:int = None, isActive:bool = None):
     update = f"""
     UPDATE users
     SET 
@@ -98,13 +100,15 @@ def update_user(uid:str, username:str = None, hash:str = None, numURL:int = None
     { (f'hash = "{hash}"') if hash != None else ""}
     {"," if (username != None or hash!=None) and numURL !=None else ""}
     { (f'numURL = {numURL}') if numURL != None else ""}
+    { (f'isActive = {isActive}') if isActive != None else ""}
     
     WHERE uid = "{uid}";
     """
+
     cursor.execute(update)
     cursor.execute("COMMIT;")
 
-def update_url(shortURL:str, longURL: str = None, newShortURL: str = None, numVisitors: int = None):
+def update_url(shortURL:str, longURL: str = None, newShortURL: str = None, numVisitors: int = None, isActive:int = None):
     update = f"""
     UPDATE urls
     SET 
@@ -113,9 +117,12 @@ def update_url(shortURL:str, longURL: str = None, newShortURL: str = None, numVi
     {(f'shortURL = "{newShortURL}"') if newShortURL != None else ""}
     {"," if (longURL != None or newShortURL != None) and numVisitors != None else ""}
     {(f'visitors = {numVisitors}') if numVisitors != None else ""}
+    {"," if (longURL != None or newShortURL != None or numVisitors != None) and isActive != None else ""}
+    {(f'isActive = {isActive}') if isActive != None else ""}
 
     WHERE shortURL = "{shortURL}";
     """
+    print(update)
     cursor.execute(update)
     cursor.execute("COMMIT;")
 def delete_user(uid:str):
@@ -134,11 +141,35 @@ def delete_url(shortURL:str):
     cursor.execute(delete)
     cursor.execute("COMMIT;")
 
+def add_visitor(shortURL:str):
+    current = f"""
+    SELECT visitors
+    FROM urls
+    WHERE shortURL = "{shortURL}"
+    """
+    currentVis = cursor.execute(current).fetchone()[0]
+
+    addOne = f"""
+    UPDATE urls
+    SET visitors = {currentVis + 1}
+    WHERE shortURL = "{shortURL}"
+    """
+    cursor.execute(addOne)
+    cursor.execute("COMMIT;")
+
+def delete_url(shortURL:str):
+    delete = f"""
+    DELETE FROM urls
+    WHERE shortURL = "{shortURL}";
+    """
+    cursor.execute(delete)
+    cursor.execute("COMMIT;")
+
 def fetch_long_url(shortURL:str) -> str | None:
     get_url = f"""
     SELECT longURL
     FROM urls
-    WHERE shortURL = "{shortURL}"
+    WHERE shortURL = "{shortURL}" AND isActive = 1
     """
     cursor.execute(get_url)
     results = cursor.fetchone()
@@ -146,7 +177,8 @@ def fetch_long_url(shortURL:str) -> str | None:
         return results[0]
     else:
         return None
-def fetch_urls(uid: str) -> list[str]:
+
+def fetch_user_urls(uid: str) -> list[str]:
     fetch_urls = f"""
     SELECT *
     FROM urls
@@ -155,6 +187,13 @@ def fetch_urls(uid: str) -> list[str]:
     cursor.execute(fetch_urls)
     results = cursor.fetchall()
     return results
+
+def url_isFree(shortURL:str) -> bool:
+    url = fetch_long_url(shortURL)
+    if url is None:
+        return True
+    else:
+        return False
 
 def create_tables():
     create_url_table()
